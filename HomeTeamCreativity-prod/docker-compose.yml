@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+    ui:
+        build: 
+            context: ./react
+        volumes:
+        - ./react/src:/app/src
+        - ./react/public:/app/public
+    api:
+        build:
+            context: ./PHP
+        depends_on:
+            - db
+        volumes:
+            - ./PHP/src:/var/www/html/
+        env_file:
+          - .env
+    db:
+        image: mysql
+        build:
+          context: ./mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        volumes:
+            - dbdata:/var/lib/mysql
+    phpmyadmin:
+        image: phpmyadmin
+        ports:
+            - '8080:80'
+        restart: always
+        environment:
+            PMA_HOST: db
+        depends_on:
+            - db
+    nginx:
+      ports:
+        - "80:80"
+      depends_on:
+        - api
+        - ui
+      build:
+        context: ./nginx
+
+volumes:
+    dbdata:
