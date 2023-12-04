@@ -14,26 +14,20 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 
 // Obtain order details
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $inputs = json_decode(file_get_contents('php://input'), true);
+    $orderId = $inputs['order'];
     if ($_SESSION['admin']) {
         $query = $conn->prepare(
-            "SELECT *
-            FROM orders
-            WHERE status = 'processing'"
+            "UPDATE orders
+            SET status = 'complete'
+            WHERE order_id = $orderId"
         );
 
         if (!$query->execute()) {
-            die("Query failed: " . $query->error);
+            echo json_encode(0);
         }
 
-        $result = $query->get_result();
-
-        $rows = array();
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                $rows[] = $row;
-            }
-        }
-        echo json_encode($rows);
+        echo json_encode(1);
     }
 }
 
